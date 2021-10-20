@@ -17,13 +17,13 @@
 
 package org.springframework.cloud.gateway.route;
 
-import javax.validation.constraints.NotEmpty;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.ArrayList;
@@ -41,20 +41,38 @@ public class RouteDefinition {
 	@NotEmpty
 	private String id = UUID.randomUUID().toString();
 
+	/**
+	 * 谓词定义 数组
+	 */
 	@NotEmpty
 	@Valid
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
+	/**
+	 * 过滤器定义数组
+	 */
 	@Valid
 	private List<FilterDefinition> filters = new ArrayList<>();
 
+	/**
+	 * 路由  跳转的 URI
+	 */
 	@NotNull
 	private URI uri;
 
+	/**
+	 * 顺序
+	 */
 	private int order = 0;
 
 	public RouteDefinition() {}
 
+	/**
+	 * 根据test  创建 RouteDefinition
+	 * @param text 格式 ${id}=${uri},${predicates[0]},${predicates[1]}...${predicates[n]}
+	 *             例如 route001=http://127.0.0.1,Host=**.addrequestparameter.org,Path=/get
+	 *
+	 */
 	public RouteDefinition(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
@@ -62,10 +80,13 @@ public class RouteDefinition {
 					", must be of the form name=value");
 		}
 
+		// id
 		setId(text.substring(0, eqIdx));
 
+		// predicates
 		String[] args = tokenizeToStringArray(text.substring(eqIdx+1), ",");
 
+		// uri
 		setUri(URI.create(args[0]));
 
 		for (int i=1; i < args.length; i++) {

@@ -17,10 +17,6 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.function.Function;
-
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -28,10 +24,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_HANDLER_MAPPER_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
+import java.util.Objects;
+import java.util.function.Function;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
 /**
  * @author Spencer Gibb
@@ -47,7 +45,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		this.routeLocator = routeLocator;
 
 		if (environment.containsProperty("management.server.port")) {
-			managmentPort = new Integer(environment.getProperty("management.server.port"));
+			managmentPort = new Integer(Objects.requireNonNull(environment.getProperty("management.server.port")));
 		} else {
 			managmentPort = null;
 		}

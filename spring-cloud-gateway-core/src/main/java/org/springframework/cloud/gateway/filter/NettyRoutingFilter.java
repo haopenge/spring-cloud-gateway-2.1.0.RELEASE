@@ -83,6 +83,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		// 设置已经路由
 		setAlreadyRouted(exchange);
 
+		// 获取请求  method、url
 		ServerHttpRequest request = exchange.getRequest();
 
 		final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
@@ -96,24 +97,31 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 		String transferEncoding = request.getHeaders().getFirst(HttpHeaders.TRANSFER_ENCODING);
 		boolean chunkedTransfer = "chunked".equalsIgnoreCase(transferEncoding);
 
+		// 是否保留主机
 		boolean preserveHost = exchange.getAttributeOrDefault(PRESERVE_HOST_HEADER_ATTRIBUTE, false);
 
+		// 使用netty client 发送请求
 		Flux<HttpClientResponse> responseFlux = this.httpClient
-				.chunkedTransfer(chunkedTransfer)
-				.request(method)
-				.uri(url)
+				.chunkedTransfer(chunkedTransfer)	// 设置 分块传输
+				.request(method)					// 设置 http method
+				.uri(url)		    			  	// 设置 http url
 				.send((req, nettyOutbound) -> {
-					req.headers(httpHeaders);
 
+					// 设置请求header 头信息
+					req.headers(httpHeaders);
 					if (preserveHost) {
 						String host = request.getHeaders().getFirst(HttpHeaders.HOST);
 						req.header(HttpHeaders.HOST, host);
 					}
+
+					//
 					return nettyOutbound
 							.options(NettyPipeline.SendOptions::flushOnEach)
-							.send(request.getBody().map(dataBuffer ->
-									((NettyDataBuffer) dataBuffer).getNativeBuffer()));
-				}).responseConnection((res, connection) -> {
+							.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer()));
+
+				})
+
+				.responseConnection((res, connection) -> {
 					ServerHttpResponse response = exchange.getResponse();
 					// put headers and status so filters can modify the response
 					HttpHeaders headers = new HttpHeaders();

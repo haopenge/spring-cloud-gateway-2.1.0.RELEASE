@@ -214,24 +214,31 @@ public class GatewayAutoConfiguration {
 		return new RouteLocatorBuilder(context);
 	}
 
+	// 4.1
 	@Bean
 	@ConditionalOnMissingBean
 	public PropertiesRouteDefinitionLocator propertiesRouteDefinitionLocator(GatewayProperties properties) {
-		return new PropertiesRouteDefinitionLocator(properties);
+		return new PropertiesRouteDefinitionLocator(properties);  // ①
 	}
 
+	// 4.2
 	@Bean
 	@ConditionalOnMissingBean(RouteDefinitionRepository.class)
 	public InMemoryRouteDefinitionRepository inMemoryRouteDefinitionRepository() {
 		return new InMemoryRouteDefinitionRepository();
 	}
 
+	// 4.3
 	@Bean
-	@Primary
-	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) {
+	@Primary // 优先被注入   // ③
+	public RouteDefinitionLocator routeDefinitionLocator(List<RouteDefinitionLocator> routeDefinitionLocators) { // ②
 		return new CompositeRouteDefinitionLocator(Flux.fromIterable(routeDefinitionLocators));
 	}
 
+
+	// 初始化RouteLocator
+
+	// 4.4
 	@Bean
 	public RouteLocator routeDefinitionRouteLocator(GatewayProperties properties,
 													List<GatewayFilterFactory> GatewayFilters,
@@ -243,6 +250,7 @@ public class GatewayAutoConfiguration {
 				properties, conversionService);
 	}
 
+	// 4.5
 	@Bean
 	@Primary
 	//TODO: property to disable composite?
@@ -255,6 +263,7 @@ public class GatewayAutoConfiguration {
 		return new RouteRefreshListener(publisher);
 	}
 
+	// 2.6
 	@Bean
 	public FilteringWebHandler filteringWebHandler(List<GlobalFilter> globalFilters) {
 		return new FilteringWebHandler(globalFilters);
@@ -264,17 +273,19 @@ public class GatewayAutoConfiguration {
 	public GlobalCorsProperties globalCorsProperties() {
 		return new GlobalCorsProperties();
 	}
-	
+
+
+	// 初始化 RoutePredicateHandlerMapping
 	@Bean
 	public RoutePredicateHandlerMapping routePredicateHandlerMapping(
 			FilteringWebHandler webHandler, RouteLocator routeLocator,
 			GlobalCorsProperties globalCorsProperties, Environment environment) {
-		return new RoutePredicateHandlerMapping(webHandler, routeLocator,
-				globalCorsProperties, environment);
+		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
 	// ConfigurationProperty beans
 
+	// 2.7
 	@Bean
 	public GatewayProperties gatewayProperties() {
 		return new GatewayProperties();
@@ -311,11 +322,13 @@ public class GatewayAutoConfiguration {
 		return new AdaptCachedBodyGlobalFilter();
 	}
 
+	// 2.1
 	@Bean
 	public RouteToRequestUrlFilter routeToRequestUrlFilter() {
 		return new RouteToRequestUrlFilter();
 	}
 
+	// 2.2
 	@Bean
 	public ForwardRoutingFilter forwardRoutingFilter(ObjectProvider<DispatcherHandler> dispatcherHandler) {
 		return new ForwardRoutingFilter(dispatcherHandler);
@@ -326,11 +339,13 @@ public class GatewayAutoConfiguration {
 		return new ForwardPathFilter();
 	}
 
+	// 2.3
 	@Bean
 	public WebSocketService webSocketService() {
 		return new HandshakeWebSocketService();
 	}
 
+	// 2.4
 	@Bean
 	public WebsocketRoutingFilter websocketRoutingFilter(WebSocketClient webSocketClient,
 														 WebSocketService webSocketService,
@@ -562,6 +577,7 @@ public class GatewayAutoConfiguration {
 		return new RequestSizeGatewayFilterFactory();
 	}
 
+	// 初始化 GatewayControllerEndpoint
 	@Configuration
 	@ConditionalOnClass(Health.class)
 	protected static class GatewayActuatorConfiguration {
