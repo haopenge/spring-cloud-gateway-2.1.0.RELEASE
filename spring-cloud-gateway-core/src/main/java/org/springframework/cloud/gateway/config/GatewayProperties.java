@@ -17,13 +17,6 @@
 
 package org.springframework.cloud.gateway.config;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,6 +24,12 @@ import org.springframework.cloud.gateway.filter.FilterDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Spencer Gibb
@@ -48,12 +47,14 @@ public class GatewayProperties {
 	private List<RouteDefinition> routes = new ArrayList<>();
 
 	/**
+	 *
+	 * 默认过滤器配置。当 RouteDefinition => Route 时，会将过滤器配置添加到每个 Route 。
+	 *
 	 * List of filter definitions that are applied to every route.
 	 */
 	private List<FilterDefinition> defaultFilters = new ArrayList<>();
 
-	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM,
-			MediaType.APPLICATION_STREAM_JSON);
+	private List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
 	public List<RouteDefinition> getRoutes() {
 		return routes;

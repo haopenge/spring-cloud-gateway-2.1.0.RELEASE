@@ -24,12 +24,18 @@ import reactor.core.publisher.Flux;
  */
 public class CompositeRouteDefinitionLocator implements RouteDefinitionLocator {
 
+	/**
+	 * RouteDefinitionLocator 数组
+	 */
 	private final Flux<RouteDefinitionLocator> delegates;
 
 	public CompositeRouteDefinitionLocator(Flux<RouteDefinitionLocator> delegates) {
 		this.delegates = delegates;
 	}
 
+	/**
+	 * 提供统一方法，将组合的 delegates 的路由定义全部返回
+	 */
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return this.delegates.flatMap(RouteDefinitionLocator::getRouteDefinitions);

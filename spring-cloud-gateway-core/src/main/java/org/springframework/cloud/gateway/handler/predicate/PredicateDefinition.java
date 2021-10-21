@@ -17,15 +17,14 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import org.springframework.cloud.gateway.support.NameUtils;
+import org.springframework.validation.annotation.Validated;
 
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
-
-import org.springframework.cloud.gateway.support.NameUtils;
-import org.springframework.validation.annotation.Validated;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.springframework.util.StringUtils.tokenizeToStringArray;
 
@@ -34,13 +33,25 @@ import static org.springframework.util.StringUtils.tokenizeToStringArray;
  */
 @Validated
 public class PredicateDefinition {
+	/**
+	 * 谓语 定义 名字
+	 */
 	@NotNull
 	private String name;
+
+	/**
+	 * 参数数组
+	 */
 	private Map<String, String> args = new LinkedHashMap<>();
 
 	public PredicateDefinition() {
 	}
 
+	/**
+	 * 根据 text 创建 PredicateDefinition
+	 * @param text 格式 ${name}=${args[0]},${args[1]}...${args[n]}
+	 *             例如 Host=iocoder.cn
+	 */
 	public PredicateDefinition(String text) {
 		int eqIdx = text.indexOf('=');
 		if (eqIdx <= 0) {
