@@ -17,15 +17,6 @@
 
 package org.springframework.cloud.gateway.route;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Predicate;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -34,6 +25,10 @@ import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.*;
+import java.util.function.Predicate;
+
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
 /**
@@ -41,14 +36,29 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.t
  */
 public class Route implements Ordered {
 
+	/**
+	 * 路由 编号
+	 */
 	private final String id;
 
+	/**
+	 * 路由跳转 的 URI
+	 */
 	private final URI uri;
 
+	/**
+	 * 顺序：请求匹配到多个路由时，使用顺序小的
+	 */
 	private final int order;
 
+	/**
+	 * 谓词数组
+	 */
 	private final AsyncPredicate<ServerWebExchange> predicate;
 
+	/**
+	 * 过滤器数组
+	 */
 	private final List<GatewayFilter> gatewayFilters;
 
 	public static Builder builder() {

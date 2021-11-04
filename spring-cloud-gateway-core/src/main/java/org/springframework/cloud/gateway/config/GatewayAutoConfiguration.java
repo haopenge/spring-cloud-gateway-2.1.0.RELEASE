@@ -221,6 +221,10 @@ public class GatewayAutoConfiguration {
 		return new PropertiesRouteDefinitionLocator(properties);  // ①
 	}
 
+	/**
+	 * 当不存在 RouteDefinitionRepository 的 Bean 对象时，初始化 InMemoryRouteDefinitionRepository 。
+	 * 也就是说，我们可以初始化自定义的 RouteDefinitionRepository 以“注入”
+	 */
 	// 4.2
 	@Bean
 	@ConditionalOnMissingBean(RouteDefinitionRepository.class)

@@ -17,16 +17,15 @@
 
 package org.springframework.cloud.gateway.route;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import reactor.cache.CacheFlux;
 import reactor.core.publisher.Flux;
 
-import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Spencer Gibb
@@ -35,10 +34,17 @@ public class CachingRouteLocator implements RouteLocator, ApplicationListener<Re
 
 	private final RouteLocator delegate;
 	private final Flux<Route> routes;
+
+	/**
+	 * 路由缓存
+	 */
 	private final Map<String, List> cache = new HashMap<>();
 
 	public CachingRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
+		// 这个乍看不太好理解，
+		// 实际分析可知，CacheFlux.lookup(), 这个方法是从缓存中获取路由数据；
+		// onCacheMissResume() 缓存中没有的时候将数据写入缓存；
 		routes = CacheFlux.lookup(cache, "routes", Route.class)
 				.onCacheMissResume(() -> this.delegate.getRoutes().sort(AnnotationAwareOrderComparator.INSTANCE));
 	}

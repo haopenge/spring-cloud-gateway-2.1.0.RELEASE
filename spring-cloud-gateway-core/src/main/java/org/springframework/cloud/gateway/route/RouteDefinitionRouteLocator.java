@@ -57,8 +57,20 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	public static final String DEFAULT_FILTERS = "defaultFilters";
 	private final RouteDefinitionLocator routeDefinitionLocator;
 	private final ConversionService conversionService;
+
+	/**
+	 * RoutePredicateFactory 映射
+	 * key: {@link RoutePredicateFactory#name()}
+	 */
 	private final Map<String, RoutePredicateFactory> predicates = new LinkedHashMap<>();
+
+	/**
+	 * GateFilterFactory 映射
+	 * key: {@link GatewayFilterFactory#name()}
+	 */
 	private final Map<String, GatewayFilterFactory> gatewayFilterFactories = new HashMap<>();
+
+
 	private final GatewayProperties gatewayProperties;
 	private final SpelExpressionParser parser = new SpelExpressionParser();
 	private BeanFactory beanFactory;
@@ -79,10 +91,19 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 									   GatewayProperties gatewayProperties,
 
 										ConversionService conversionService) {
+
+		// 设置 RouteDefinitionLocator
 		this.routeDefinitionLocator = routeDefinitionLocator;
+
 		this.conversionService = conversionService;
+
+		// 初始化 RoutePredicateFactory
 		initFactories(predicates);
+
+		// 初始化 RoutePredicateFactory
 		gatewayFilterFactories.forEach(factory -> this.gatewayFilterFactories.put(factory.name(), factory));
+
+		// 设置 GatewayProperties
 		this.gatewayProperties = gatewayProperties;
 	}
 

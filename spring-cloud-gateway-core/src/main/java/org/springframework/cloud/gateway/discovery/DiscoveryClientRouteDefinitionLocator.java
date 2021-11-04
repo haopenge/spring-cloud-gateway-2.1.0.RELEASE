@@ -17,14 +17,8 @@
 
 package org.springframework.cloud.gateway.discovery;
 
-import java.net.URI;
-import java.util.Map;
-import java.util.function.Predicate;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Flux;
-
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -38,6 +32,11 @@ import org.springframework.expression.ParseException;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.util.StringUtils;
+import reactor.core.publisher.Flux;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * TODO: change to RouteLocator? use java dsl
@@ -94,8 +93,12 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					String serviceId = instance.getServiceId();
 
                     RouteDefinition routeDefinition = new RouteDefinition();
+
+					// 设置ID
                     routeDefinition.setId(this.routeIdPrefix + serviceId);
 					String uri = urlExpr.getValue(evalCtxt, instance, String.class);
+
+					// 设置URI
 					routeDefinition.setUri(URI.create(uri));
 
 					final ServiceInstance instanceForEval = new DelegatingServiceInstance(instance, properties);
@@ -111,6 +114,8 @@ public class DiscoveryClientRouteDefinitionLocator implements RouteDefinitionLoc
 					}
 
                     for (FilterDefinition original : this.properties.getFilters()) {
+
+						//
                     	FilterDefinition filter = new FilterDefinition();
                     	filter.setName(original.getName());
 						for (Map.Entry<String, String> entry : original.getArgs().entrySet()) {

@@ -33,8 +33,16 @@ import static java.util.Collections.synchronizedMap;
 public class InMemoryRouteDefinitionRepository implements RouteDefinitionRepository {
 
 
+	/**
+	 * 路由配置映射
+	 * key: 路由编号  {@link RouteDefinition#id}
+	 */
 	private final Map<String, RouteDefinition> routes = synchronizedMap(new LinkedHashMap<>());
 
+	/**
+	 * {@link org.springframework.cloud.gateway.actuate.GatewayControllerEndpoint#save }
+	 * @param route 路由配置
+	 */
 	@Override
 	public Mono<Void> save(Mono<RouteDefinition> route) {
 		return route.flatMap( r -> {
@@ -54,6 +62,9 @@ public class InMemoryRouteDefinitionRepository implements RouteDefinitionReposit
 		});
 	}
 
+	/**
+	 * {@link CompositeRouteDefinitionLocator#getRouteDefinitions()}
+	 */
 	@Override
 	public Flux<RouteDefinition> getRouteDefinitions() {
 		return Flux.fromIterable(routes.values());

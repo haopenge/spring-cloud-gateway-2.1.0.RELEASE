@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 网关端点抽象类
+ * 提供管理网关的 HTTP API
  * @author Spencer Gibb
  */
 @RestControllerEndpoint(id = "gateway")
@@ -62,7 +62,7 @@ public class GatewayControllerEndpoint implements ApplicationEventPublisherAware
 	private List<GatewayFilterFactory> GatewayFilters;
 
 	/**
-	 * 谓词工厂
+	 *  存储器 RouteDefinitionLocator 对象
 	 */
 	private RouteDefinitionWriter routeDefinitionWriter;
 
@@ -190,11 +190,11 @@ predicates:='["Host=**.apiaddrequestheader.org", "Path=/headers"]' filters:='["A
 	@PostMapping("/routes/{id}")
 	@SuppressWarnings("unchecked")
 	public Mono<ResponseEntity<Void>> save(@PathVariable String id, @RequestBody Mono<RouteDefinition> route) {
-		return this.routeDefinitionWriter.save(route.map(r ->  {
+		return this.routeDefinitionWriter.save(route.map(r ->  {  // 设置ID
 			r.setId(id);
 			log.debug("Saving route: " + route);
 			return r;
-		})).then(Mono.defer(() ->
+		})).then(Mono.defer(() -> // // status ：201 ，创建成功。参见 HTTP 规范 ：https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
 			Mono.just(ResponseEntity.created(URI.create("/routes/"+id)).build())
 		));
 	}

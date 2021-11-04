@@ -17,26 +17,22 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.net.URI;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.gateway.config.LoadBalancerProperties;
-import org.springframework.cloud.gateway.discovery.DiscoveryLocatorProperties;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ServerWebExchange;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.Map;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 /**
  * @author Spencer Gibb
@@ -63,16 +59,22 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		//  获得URL
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
+
+		//
 		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}
+
+		// 添加原始请求URI 到 GATEWAY_ORIGINAL_REQUEST_URL_ATTR
 		//preserve the original url
 		addOriginalRequestUrl(exchange, url);
 
 		log.trace("LoadBalancerClientFilter url before: " + url);
 
+		// 获得一个服务实例( ServiceInstance ) ，从而实现负载均衡
 		final ServiceInstance instance = choose(exchange);
 
 		if (instance == null) {
@@ -95,7 +97,11 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 		URI requestUrl = loadBalancer.reconstructURI(new DelegatingServiceInstance(instance, overrideScheme), uri);
 
 		log.trace("LoadBalancerClientFilter url chosen: " + requestUrl);
+
+		// 设置 requestUrl 到 GATEWAY_REQUEST_URL_ATTR 。后面 Routing 相关的 GatewayFilter 会通过该属性，发起请求。
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
+
+		// 提交过滤器链继续过滤
 		return chain.filter(exchange);
 	}
 
