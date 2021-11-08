@@ -140,7 +140,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	public Flux<Route> getRoutes() {
 		return this.routeDefinitionLocator.getRouteDefinitions()
 				.map(this::convertToRoute) // ①
-				//TODO: error handling
+				 // TODO: error handling
 				.map(route -> {
 					if (logger.isDebugEnabled()) {
 						logger.debug("RouteDefinition matched: " + route.getId());
@@ -155,10 +155,17 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 			}*/
 	}
 
+	/**
+	 * 将Definition 转化成 Route 对象
+	 */
 	// ① 所调用的方法
 	private Route convertToRoute(RouteDefinition routeDefinition) {
-		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);  // ②
-		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition); // ③
+
+		// ②整合predicate
+		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
+
+		//  ③整合filter
+		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
 		return Route.async(routeDefinition)  // ④
 				.asyncPredicate(predicate)
@@ -168,6 +175,8 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 	@SuppressWarnings("unchecked")
 	private List<GatewayFilter> loadGatewayFilters(String id, List<FilterDefinition> filterDefinitions) {
+
+		// 将filterDefinition 转化成filter
 		List<GatewayFilter> filters = filterDefinitions.stream()
 				.map(definition -> {
 					GatewayFilterFactory factory = this.gatewayFilterFactories.get(definition.getName());
@@ -194,6 +203,9 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 				})
 				.collect(Collectors.toList());
 
+
+		// 将filter 转化成 OrderFilter
+		// ? 为啥不在上一步 一步到位呢？
 		ArrayList<GatewayFilter> ordered = new ArrayList<>(filters.size());
 		for (int i = 0; i < filters.size(); i++) {
 			GatewayFilter gatewayFilter = filters.get(i);
@@ -216,12 +228,12 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 
 		//TODO: support option to apply defaults after route specific filters?
 
-		// ① 处理 GatewayProperties 中定义的默认的 FilterDefinition，转换成 GatewayFilter。
+		// ①  FilterDefinition，转换成 GatewayFilter。
 		if (!this.gatewayProperties.getDefaultFilters().isEmpty()) {
 			filters.addAll(loadGatewayFilters(DEFAULT_FILTERS, this.gatewayProperties.getDefaultFilters()));
 		}
 
-		// ② 将 RouteDefinition 中定义的 FilterDefinition 转换成 GatewayFilter。
+		// ② FilterDefinition 转换成 GatewayFilter。
 		if (!routeDefinition.getFilters().isEmpty()) {
 			filters.addAll(loadGatewayFilters(routeDefinition.getId(), routeDefinition.getFilters()));
 		}
@@ -234,7 +246,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	private AsyncPredicate<ServerWebExchange> combinePredicates(RouteDefinition routeDefinition) {
 		List<PredicateDefinition> predicates = routeDefinition.getPredicates();
 
-		// ① 调用 lookup 方法，将列表中第一个 PredicateDefinition 转换成 AsyncPredicate
+		// ① 列表中第一个 PredicateDefinition 转换成 AsyncPredicate
 		AsyncPredicate<ServerWebExchange> predicate = lookup(routeDefinition, predicates.get(0));
 
 		for (PredicateDefinition andPredicate : predicates.subList(1, predicates.size())) {
@@ -251,7 +263,7 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 	@SuppressWarnings("unchecked")
 	private AsyncPredicate<ServerWebExchange> lookup(RouteDefinition route, PredicateDefinition predicate) {
 
-		// ① 根据 predicate 名称获取对应的 predicate factory
+		// ① 获取predicate factory
 		RoutePredicateFactory<Object> factory = this.predicates.get(predicate.getName());
 		if (factory == null) {
             throw new IllegalArgumentException("Unable to find RoutePredicateFactory with name " + predicate.getName());
@@ -266,11 +278,12 @@ public class RouteDefinitionRouteLocator implements RouteLocator, BeanFactoryAwa
 		// ③ 对第 ② 步获得的参数作进一步转换，key为 config 类（工厂类中通过范型指定）的属性名称。
         Map<String, Object> properties = factory.shortcutType().normalize(args, factory, this.parser, this.beanFactory);
 
-		// ④ 调用 factory 的 newConfig 方法创建一个 config 类对象
+		// ④ 创建一个 config 类对象
         Object config = factory.newConfig();
+
 		// ⑤ 将第 ③ 步中产生的参数绑定到 config 对象上。
-        ConfigurationUtils.bind(config, properties, factory.shortcutFieldPrefix(), predicate.getName(),
-				validator, conversionService);
+        ConfigurationUtils.bind(config, properties, factory.shortcutFieldPrefix(), predicate.getName(), validator, conversionService);
+
         if (this.publisher != null) {
             this.publisher.publishEvent(new PredicateArgsEvent(this, route.getId(), properties));
         }
