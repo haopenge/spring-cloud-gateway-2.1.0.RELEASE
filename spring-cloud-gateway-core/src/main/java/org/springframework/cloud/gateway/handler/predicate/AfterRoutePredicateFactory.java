@@ -17,14 +17,13 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
+import org.springframework.web.server.ServerWebExchange;
+
+import javax.validation.constraints.NotNull;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
-
-import org.springframework.web.server.ServerWebExchange;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * @author Spencer Gibb
@@ -45,6 +44,7 @@ public class AfterRoutePredicateFactory extends AbstractRoutePredicateFactory<Af
 	@Override
 	public Predicate<ServerWebExchange> apply(Config config) {
 		ZonedDateTime datetime = config.getDatetime();
+
 		return exchange -> {
 			final ZonedDateTime now = ZonedDateTime.now();
 			return now.isAfter(datetime);

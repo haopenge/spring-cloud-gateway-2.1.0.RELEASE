@@ -17,14 +17,14 @@
 
 package org.springframework.cloud.gateway.handler.predicate;
 
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.support.Configurable;
 import org.springframework.cloud.gateway.support.NameUtils;
 import org.springframework.cloud.gateway.support.ShortcutConfigurable;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 

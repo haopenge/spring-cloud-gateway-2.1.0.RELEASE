@@ -17,14 +17,8 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import reactor.core.publisher.Mono;
-
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -35,6 +29,11 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
+import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
 
@@ -74,11 +73,20 @@ public class FilteringWebHandler implements WebHandler {
 
 	@Override
 	public Mono<Void> handle(ServerWebExchange exchange) {
+
+		/**
+		 * 根据当前的request 匹配出相应的 Route,放入attributes, key: GATEWAY_ROUTE_ATTR
+		 * 在 {@link RoutePredicateHandlerMapping#getHandlerInternal(org.springframework.web.server.ServerWebExchange)} 处进行存储
+		 */
+
 		Route route = exchange.getRequiredAttribute(GATEWAY_ROUTE_ATTR);
+
 		List<GatewayFilter> gatewayFilters = route.getFilters();
 
+		// 获取gatewayFiler 数据 包含route.filter 和 globalFilter
 		List<GatewayFilter> combined = new ArrayList<>(this.globalFilters);
 		combined.addAll(gatewayFilters);
+
 		//TODO: needed or cached?
 		AnnotationAwareOrderComparator.sort(combined);
 

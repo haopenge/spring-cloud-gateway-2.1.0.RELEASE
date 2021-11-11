@@ -56,20 +56,25 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
 		// don't handle requests on the management port if set
-		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort.intValue()) {
+		if (managmentPort != null && exchange.getRequest().getURI().getPort() == managmentPort) {
 			return Mono.empty();
 		}
 		exchange.getAttributes().put(GATEWAY_HANDLER_MAPPER_ATTR, getSimpleName());
 
+		/**
+		 * 根据当前的request 匹配出相应的 Route,放入attributes, key: GATEWAY_ROUTE_ATTR
+		 * 在 {@link FilteringWebHandler#handle(org.springframework.web.server.ServerWebExchange)} 处进行调用处理
+		 */
 		return lookupRoute(exchange)
-				// .log("route-predicate-handler-mapping", Level.FINER) //name this
 				.flatMap((Function<Route, Mono<?>>) r -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+
 					if (logger.isDebugEnabled()) {
 						logger.debug("Mapping [" + getExchangeDesc(exchange) + "] to " + r);
 					}
 
 					exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
+
 					return Mono.just(webHandler);
 				}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
 					exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
@@ -102,20 +107,20 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 		return this.routeLocator
 				.getRoutes()
 				//individually filter routes so that filterWhen error delaying is not a problem
-				.concatMap(route -> Mono
-						.just(route)
+				.concatMap(route ->
+						Mono.just(route)
 						.filterWhen(r -> {
 							// add the current route we are testing
 							exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+
 							return r.getPredicate().apply(exchange);
 						})
+
+
 						//instead of immediately stopping main flux due to error, log and swallow it
-						.doOnError(e -> logger.error("Error applying predicate for route: "+route.getId(), e))
+						.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
 						.onErrorResume(e -> Mono.empty())
 				)
-				// .defaultIfEmpty() put a static Route not found
-				// or .switchIfEmpty()
-				// .switchIfEmpty(Mono.<Route>empty().log("noroute"))
 				.next()
 				//TODO: error handling
 				.map(route -> {
@@ -126,10 +131,6 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 					return route;
 				});
 
-		/* TODO: trace logging
-			if (logger.isTraceEnabled()) {
-				logger.trace("RouteDefinition did not match: " + routeDefinition.getId());
-			}*/
 	}
 
 	/**
