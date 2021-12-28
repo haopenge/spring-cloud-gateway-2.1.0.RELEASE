@@ -80,7 +80,7 @@ public class NettyRoutingFilter implements GlobalFilter, Ordered {
 			return chain.filter(exchange);
 		}
 
-		// 设置已经路由
+		// 设置已经路由，即请求已被处理
 		setAlreadyRouted(exchange);
 
 		// 获取请求  method、url

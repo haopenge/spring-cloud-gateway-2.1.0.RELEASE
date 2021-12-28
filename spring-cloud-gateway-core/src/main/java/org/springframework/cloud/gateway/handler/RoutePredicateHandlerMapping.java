@@ -104,22 +104,22 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 	}
 
 	protected Mono<Route> lookupRoute(ServerWebExchange exchange) {
-		return this.routeLocator
+		Mono<Route> mono = this.routeLocator
 				.getRoutes()
 				//individually filter routes so that filterWhen error delaying is not a problem
 				.concatMap(route ->
 						Mono.just(route)
-						.filterWhen(r -> {
-							// add the current route we are testing
-							exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
+								.filterWhen(r -> {
+									// add the current route we are testing
+									exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
 
-							return r.getPredicate().apply(exchange);
-						})
+									return r.getPredicate().apply(exchange);
+								})
 
 
-						//instead of immediately stopping main flux due to error, log and swallow it
-						.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
-						.onErrorResume(e -> Mono.empty())
+								//instead of immediately stopping main flux due to error, log and swallow it
+								.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
+								.onErrorResume(e -> Mono.empty())
 				)
 				.next()
 				//TODO: error handling
@@ -130,7 +130,7 @@ public class RoutePredicateHandlerMapping extends AbstractHandlerMapping {
 					validateRoute(route, exchange);
 					return route;
 				});
-
+		return mono;
 	}
 
 	/**

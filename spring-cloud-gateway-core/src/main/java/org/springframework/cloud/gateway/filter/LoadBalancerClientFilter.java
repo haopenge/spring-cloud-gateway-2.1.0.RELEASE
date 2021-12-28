@@ -59,11 +59,15 @@ public class LoadBalancerClientFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+
 		//  获得URL
+
+		/**
+		 * 在{@link RouteToRequestUrlFilter#filter(org.springframework.web.server.ServerWebExchange, org.springframework.cloud.gateway.filter.GatewayFilterChain)} 处 存入此值
+		 */
 		URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
 		String schemePrefix = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
 
-		//
 		if (url == null || (!"lb".equals(url.getScheme()) && !"lb".equals(schemePrefix))) {
 			return chain.filter(exchange);
 		}

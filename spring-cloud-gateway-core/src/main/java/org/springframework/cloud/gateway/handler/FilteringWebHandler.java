@@ -50,6 +50,9 @@ public class FilteringWebHandler implements WebHandler {
 
 	private final List<GatewayFilter> globalFilters;
 
+	/**
+	 * 初始化时，将GlobalFilter 转化为 GatewayFilter
+	 */
 	public FilteringWebHandler(List<GlobalFilter> globalFilters) {
 		this.globalFilters = loadFilters(globalFilters);
 	}
@@ -116,6 +119,11 @@ public class FilteringWebHandler implements WebHandler {
 			return filters;
 		}
 
+		/**
+		 *
+		 *  这方法竟然是个循环，绝了！！！
+		 *
+		 */
 		@Override
 		public Mono<Void> filter(ServerWebExchange exchange) {
 			return Mono.defer(() -> {
@@ -130,6 +138,9 @@ public class FilteringWebHandler implements WebHandler {
 		}
 	}
 
+	/**
+	 * 网关过滤器适配器，  将GlobalFilter 转化为 GatewayFilter
+	 */
 	private static class GatewayFilterAdapter implements GatewayFilter {
 
 		private final GlobalFilter delegate;

@@ -17,22 +17,18 @@
 
 package org.springframework.cloud.gateway.filter;
 
-import java.net.URI;
-import java.util.regex.Pattern;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
-import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.containsEncodedParts;
-
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.regex.Pattern;
+
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
 
 /**
  * @author Spencer Gibb
@@ -52,6 +48,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		// 获得Route
 		Route route = exchange.getAttribute(GATEWAY_ROUTE_ATTR);
 		if (route == null) {
 			return chain.filter(exchange);
@@ -74,6 +71,7 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 			throw new IllegalStateException("Invalid host: " + routeUri.toString());
 		}
 
+		// 拼接url
 		URI mergedUrl = UriComponentsBuilder.fromUri(uri)
 				// .uri(routeUri)
 				.scheme(routeUri.getScheme())
@@ -81,7 +79,11 @@ public class RouteToRequestUrlFilter implements GlobalFilter, Ordered {
 				.port(routeUri.getPort())
 				.build(encoded)
 				.toUri();
+		/**
+		 * 在 {@link LoadBalancerClientFilter#filter(org.springframework.web.server.ServerWebExchange, org.springframework.cloud.gateway.filter.GatewayFilterChain)} 处使用
+		 */
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, mergedUrl);
+
 		return chain.filter(exchange);
 	}
 

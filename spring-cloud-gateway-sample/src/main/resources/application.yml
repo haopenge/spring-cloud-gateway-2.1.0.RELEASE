@@ -58,6 +58,7 @@ apollo:
   bootstrap:
     namespaces: application
     enabled: true
+ #meta: http://192.168.10.120:9001
   meta: http://172.16.146.231:9001
 
 ENV: DEV
